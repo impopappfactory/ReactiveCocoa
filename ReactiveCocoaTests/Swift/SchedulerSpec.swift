@@ -116,7 +116,7 @@ class SchedulerSpec: QuickSpec {
 			}
 		}
 
-		describe("QueueScheduler") {
+/*		describe("QueueScheduler") {
 			it("should run enqueued actions on a global queue") {
 				var didRun = false
 				let scheduler: QueueScheduler
@@ -195,7 +195,7 @@ class SchedulerSpec: QuickSpec {
 				}
 			}
 		}
-
+*/
 		describe("TestScheduler") {
 			var scheduler: TestScheduler!
 			var startDate: NSDate!
