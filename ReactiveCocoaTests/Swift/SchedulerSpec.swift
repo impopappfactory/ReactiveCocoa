@@ -120,7 +120,7 @@ class SchedulerSpec: QuickSpec {
 			it("should run enqueued actions on a global queue") {
 				var didRun = false
 				let scheduler: QueueScheduler
-				if #available(OSX 10.10, *) {
+				if #available(OSX 10.10, iOS 8.0, *) {
 					scheduler = QueueScheduler(qos: QOS_CLASS_DEFAULT)
 				} else {
 					scheduler = QueueScheduler(queue: dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0))
@@ -137,7 +137,7 @@ class SchedulerSpec: QuickSpec {
 				var scheduler: QueueScheduler!
 
 				beforeEach {
-					if #available(OSX 10.10, *) {
+					if #available(OSX 10.10, iOS 8.0, *) {
 						scheduler = QueueScheduler(qos: QOS_CLASS_DEFAULT)
 					} else {
 						scheduler = QueueScheduler(queue: dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0))

@@ -1836,7 +1836,7 @@ class SignalProducerSpec: QuickSpec {
 		describe("take") {
 			it("Should not start concat'ed producer if the first one sends a value when using take(1)") {
 				let scheduler: QueueScheduler
-				if #available(OSX 10.10, *) {
+				if #available(OSX 10.10, iOS 8.0, *) {
 					scheduler = QueueScheduler()
 				} else {
 					scheduler = QueueScheduler(queue: dispatch_get_main_queue())
