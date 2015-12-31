@@ -65,7 +65,7 @@ public final class Action<Input, Output, Error: ErrorType> {
 
 	/// Initializes an action that will be conditionally enabled, and create a
 	/// SignalProducer for each input.
-	public init<P: PropertyType where P.Value == Bool>(enabledIf: P, _ execute: Input -> SignalProducer<Output, Error>) {
+	public init<P: ReactivePropertyType where P.Value == Bool>(enabledIf: P, _ execute: Input -> SignalProducer<Output, Error>) {
 		executeClosure = execute
 		userEnabled = AnyProperty(enabledIf)
 

@@ -124,7 +124,7 @@ extension SignalType where Value: SignalProducerType, Error == Value.Error {
 		}
 	}
 
-	private func observeConcat(observer: Observer<Value.Value, Error>, _ disposable: CompositeDisposable? = nil) -> Disposable? {
+	private func observeConcat(observer: ReactiveObserver<Value.Value, Error>, _ disposable: CompositeDisposable? = nil) -> Disposable? {
 		let state = ConcatState(observer: observer, disposable: disposable)
 
 		return self.observe { event in
@@ -179,7 +179,7 @@ extension SignalProducerType {
 
 private final class ConcatState<Value, Error: ErrorType> {
 	/// The observer of a started `concat` producer.
-	let observer: Observer<Value, Error>
+	let observer: ReactiveObserver<Value, Error>
 
 	/// The top level disposable of a started `concat` producer.
 	let disposable: CompositeDisposable?
@@ -264,7 +264,7 @@ extension SignalType where Value: SignalProducerType, Error == Value.Error {
 		}
 	}
 
-	private func observeMerge(observer: Observer<Value.Value, Error>, _ disposable: CompositeDisposable? = nil) -> Disposable? {
+	private func observeMerge(observer: ReactiveObserver<Value.Value, Error>, _ disposable: CompositeDisposable? = nil) -> Disposable? {
 		let inFlight = Atomic(1)
 		let decrementInFlight: () -> () = {
 			let orig = inFlight.modify { $0 - 1 }
@@ -351,7 +351,7 @@ extension SignalType where Value: SignalProducerType, Error == Value.Error {
 		}
 	}
 
-	private func observeSwitchToLatest(observer: Observer<Value.Value, Error>, _ latestInnerDisposable: SerialDisposable) -> Disposable? {
+	private func observeSwitchToLatest(observer: ReactiveObserver<Value.Value, Error>, _ latestInnerDisposable: SerialDisposable) -> Disposable? {
 		let state = Atomic(LatestState<Value, Error>())
 
 		return self.observe { event in
@@ -516,7 +516,7 @@ extension SignalType {
 		}
 	}
 
-	private func observeFlatMapError<F>(handler: Error -> SignalProducer<Value, F>, _ observer: Observer<Value, F>, _ serialDisposable: SerialDisposable) -> Disposable? {
+	private func observeFlatMapError<F>(handler: Error -> SignalProducer<Value, F>, _ observer: ReactiveObserver<Value, F>, _ serialDisposable: SerialDisposable) -> Disposable? {
 		return self.observe { event in
 			switch event {
 			case let .Next(value):

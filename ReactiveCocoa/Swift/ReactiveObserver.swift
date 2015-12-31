@@ -8,7 +8,7 @@
 
 /// An Observer is a simple wrapper around a function which can receive Events
 /// (typically from a Signal).
-public struct Observer<Value, Error: ErrorType> {
+public struct ReactiveObserver<Value, Error: ErrorType> {
 	public typealias Action = Event<Value, Error> -> ()
 
 	public let action: Action

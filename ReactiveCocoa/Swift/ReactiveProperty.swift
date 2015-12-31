@@ -1,7 +1,7 @@
 import Foundation
 
 /// Represents a property that allows observation of its changes.
-public protocol PropertyType {
+public protocol ReactivePropertyType {
 	typealias Value
 
 	/// The current value of the property.
@@ -13,7 +13,7 @@ public protocol PropertyType {
 }
 
 /// A read-only property that allows observation of its changes.
-public struct AnyProperty<Value>: PropertyType {
+public struct AnyProperty<Value>: ReactivePropertyType {
 
 	private let _value: () -> Value
 	private let _producer: () -> SignalProducer<Value, NoError>
@@ -27,7 +27,7 @@ public struct AnyProperty<Value>: PropertyType {
 	}
 	
 	/// Initializes a property as a read-only view of the given property.
-	public init<P: PropertyType where P.Value == Value>(_ property: P) {
+	public init<P: ReactivePropertyType where P.Value == Value>(_ property: P) {
 		_value = { property.value }
 		_producer = { property.producer }
 	}
@@ -50,7 +50,7 @@ public struct AnyProperty<Value>: PropertyType {
 }
 
 /// A property that never changes.
-public struct ConstantProperty<Value>: PropertyType {
+public struct ConstantProperty<Value>: ReactivePropertyType {
 
 	public let value: Value
 	public let producer: SignalProducer<Value, NoError>
@@ -66,7 +66,7 @@ public struct ConstantProperty<Value>: PropertyType {
 ///
 /// Only classes can conform to this protocol, because instances must support
 /// weak references (and value types currently do not).
-public protocol MutablePropertyType: class, PropertyType {
+public protocol MutablePropertyType: class, ReactivePropertyType {
 	var value: Value { get set }
 }
 
@@ -148,61 +148,61 @@ public final class MutableProperty<Value>: MutablePropertyType {
 	}
 }
 
-/// Wraps a `dynamic` property, or one defined in Objective-C, using Key-Value
-/// Coding and Key-Value Observing.
-///
-/// Use this class only as a last resort! `MutableProperty` is generally better
-/// unless KVC/KVO is required by the API you're using (for example,
-/// `NSOperation`).
-@objc public final class DynamicProperty: RACDynamicPropertySuperclass, MutablePropertyType {
-	public typealias Value = AnyObject?
-
-	private weak var object: NSObject?
-	private let keyPath: String
-
-	/// The current value of the property, as read and written using Key-Value
-	/// Coding.
-	public var value: AnyObject? {
-		@objc(rac_value) get {
-			return object?.valueForKeyPath(keyPath)
-		}
-
-		@objc(setRac_value:) set(newValue) {
-			object?.setValue(newValue, forKeyPath: keyPath)
-		}
-	}
-
-	/// A producer that will create a Key-Value Observer for the given object,
-	/// send its initial value then all changes over time, and then complete
-	/// when the observed object has deallocated.
-	///
-	/// By definition, this only works if the object given to init() is
-	/// KVO-compliant. Most UI controls are not!
-	public var producer: SignalProducer<AnyObject?, NoError> {
-		if let object = object {
-			return object.rac_valuesForKeyPath(keyPath, observer: nil).toSignalProducer()
-				// Errors aren't possible, but the compiler doesn't know that.
-				.flatMapError { error in
-					0 // suppresses implicit return error on fatalError
-					fatalError("Received unexpected error from KVO signal: \(error)")
-				}
-		} else {
-			return .empty
-		}
-	}
-
-	/// Initializes a property that will observe and set the given key path of
-	/// the given object. `object` must support weak references!
-	public init(object: NSObject?, keyPath: String) {
-		self.object = object
-		self.keyPath = keyPath
-		
-		/// DynamicProperty stay alive as long as object is alive.
-		/// This is made possible by strong reference cycles.
-		super.init()
-		object?.rac_willDeallocSignal()?.toSignalProducer().startWithCompleted { self }
-	}
-}
+///// Wraps a `dynamic` property, or one defined in Objective-C, using Key-Value
+///// Coding and Key-Value Observing.
+/////
+///// Use this class only as a last resort! `MutableProperty` is generally better
+///// unless KVC/KVO is required by the API you're using (for example,
+///// `NSOperation`).
+//@objc public final class DynamicProperty: RACDynamicPropertySuperclass, MutablePropertyType {
+//	public typealias Value = AnyObject?
+//
+//	private weak var object: NSObject?
+//	private let keyPath: String
+//
+//	/// The current value of the property, as read and written using Key-Value
+//	/// Coding.
+//	public var value: AnyObject? {
+//		@objc(rac_value) get {
+//			return object?.valueForKeyPath(keyPath)
+//		}
+//
+//		@objc(setRac_value:) set(newValue) {
+//			object?.setValue(newValue, forKeyPath: keyPath)
+//		}
+//	}
+//
+//	/// A producer that will create a Key-Value Observer for the given object,
+//	/// send its initial value then all changes over time, and then complete
+//	/// when the observed object has deallocated.
+//	///
+//	/// By definition, this only works if the object given to init() is
+//	/// KVO-compliant. Most UI controls are not!
+//	public var producer: SignalProducer<AnyObject?, NoError> {
+//		if let object = object {
+//			return object.rac_valuesForKeyPath(keyPath, observer: nil).toSignalProducer()
+//				// Errors aren't possible, but the compiler doesn't know that.
+//				.flatMapError { error in
+//					0 // suppresses implicit return error on fatalError
+//					fatalError("Received unexpected error from KVO signal: \(error)")
+//				}
+//		} else {
+//			return .empty
+//		}
+//	}
+//
+//	/// Initializes a property that will observe and set the given key path of
+//	/// the given object. `object` must support weak references!
+//	public init(object: NSObject?, keyPath: String) {
+//		self.object = object
+//		self.keyPath = keyPath
+//		
+//		/// DynamicProperty stay alive as long as object is alive.
+//		/// This is made possible by strong reference cycles.
+//		super.init()
+//		object?.rac_willDeallocSignal()?.toSignalProducer().startWithCompleted { self }
+//	}
+//}
 
 infix operator <~ {
 	associativity right
@@ -263,6 +263,6 @@ public func <~ <P: MutablePropertyType>(property: P, producer: SignalProducer<P.
 ///
 /// The binding will automatically terminate when either property is
 /// deinitialized.
-public func <~ <Destination: MutablePropertyType, Source: PropertyType where Source.Value == Destination.Value>(destinationProperty: Destination, sourceProperty: Source) -> Disposable {
+public func <~ <Destination: MutablePropertyType, Source: ReactivePropertyType where Source.Value == Destination.Value>(destinationProperty: Destination, sourceProperty: Source) -> Disposable {
 	return destinationProperty <~ sourceProperty.producer
 }

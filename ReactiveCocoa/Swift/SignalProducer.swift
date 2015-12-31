@@ -1,5 +1,5 @@
 import Foundation
-import Result
+//import Result
 
 /// A SignalProducer creates Signals that can produce values of type `Value` and/or
 /// fail with errors of type `Error`. If no failure should be possible, NoError
@@ -176,7 +176,7 @@ public struct SignalProducer<Value, Error: ErrorType> {
 			}
 		}
 
-		let bufferingObserver: Signal<Value, Error>.Observer = Observer { event in
+		let bufferingObserver: Signal<Value, Error>.Observer = ReactiveObserver { event in
 			// Send serially with respect to other senders, and never while
 			// another thread is in the process of replaying.
 			dispatch_sync(queue) {
@@ -248,7 +248,7 @@ public struct SignalProducer<Value, Error: ErrorType> {
 			return
 		}
 
-		let wrapperObserver: Signal<Value, Error>.Observer = Observer { event in
+		let wrapperObserver: Signal<Value, Error>.Observer = ReactiveObserver { event in
 			observer.action(event)
 
 			if event.isTerminating {
@@ -328,7 +328,7 @@ extension SignalProducerType {
 	/// Convenience override for start(_:) to allow trailing-closure style
 	/// invocations.
 	public func start(observerAction: Signal<Value, Error>.Observer.Action) -> Disposable {
-		return start(Observer(observerAction))
+		return start(ReactiveObserver(observerAction))
 	}
 
 	/// Creates a Signal from the producer, then adds exactly one observer to
@@ -338,7 +338,7 @@ extension SignalProducerType {
 	/// Returns a Disposable which can be used to interrupt the work associated
 	/// with the Signal, and prevent any future callbacks from being invoked.
 	public func startWithNext(next: Value -> ()) -> Disposable {
-		return start(Observer(next: next))
+		return start(ReactiveObserver(next: next))
 	}
 
 	/// Creates a Signal from the producer, then adds exactly one observer to
@@ -348,7 +348,7 @@ extension SignalProducerType {
 	/// Returns a Disposable which can be used to interrupt the work associated
 	/// with the Signal.
 	public func startWithCompleted(completed: () -> ()) -> Disposable {
-		return start(Observer(completed: completed))
+		return start(ReactiveObserver(completed: completed))
 	}
 	
 	/// Creates a Signal from the producer, then adds exactly one observer to
@@ -358,7 +358,7 @@ extension SignalProducerType {
 	/// Returns a Disposable which can be used to interrupt the work associated
 	/// with the Signal.
 	public func startWithFailed(failed: Error -> ()) -> Disposable {
-		return start(Observer(failed: failed))
+		return start(ReactiveObserver(failed: failed))
 	}
 	
 	/// Creates a Signal from the producer, then adds exactly one observer to
@@ -368,7 +368,7 @@ extension SignalProducerType {
 	/// Returns a Disposable which can be used to interrupt the work associated
 	/// with the Signal.
 	public func startWithInterrupted(interrupted: () -> ()) -> Disposable {
-		return start(Observer(interrupted: interrupted))
+		return start(ReactiveObserver(interrupted: interrupted))
 	}
 
 	/// Lifts an unary Signal operator to operate upon SignalProducers instead.

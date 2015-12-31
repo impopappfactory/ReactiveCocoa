@@ -1,5 +1,5 @@
 import Foundation
-import Result
+//import Result
 
 /// A push-driven stream that sends Events over time, parameterized by the type
 /// of values being sent (`Value`) and the type of failure that can occur (`Error`).
@@ -16,7 +16,7 @@ import Result
 /// Signals do not need to be retained. A Signal will be automatically kept
 /// alive until the event stream has terminated.
 public final class Signal<Value, Error: ErrorType> {
-	public typealias Observer = ReactiveCocoa.Observer<Value, Error>
+	public typealias Observer = ReactiveObserver<Value, Error>
 
 	private let atomicObservers: Atomic<Bag<Observer>?> = Atomic(Bag())
 
@@ -168,7 +168,7 @@ extension SignalType {
 	/// Convenience override for observe(_:) to allow trailing-closure style
 	/// invocations.
 	public func observe(action: Signal<Value, Error>.Observer.Action) -> Disposable? {
-		return observe(Observer(action))
+		return observe(ReactiveObserver(action))
 	}
 
 	/// Observes the Signal by invoking the given callback when `next` events are
@@ -178,7 +178,7 @@ extension SignalType {
 	/// callbacks. Disposing of the Disposable will have no effect on the Signal
 	/// itself.
 	public func observeNext(next: Value -> ()) -> Disposable? {
-		return observe(Observer(next: next))
+		return observe(ReactiveObserver(next: next))
 	}
 
 	/// Observes the Signal by invoking the given callback when a `completed` event is
@@ -188,7 +188,7 @@ extension SignalType {
 	/// callback. Disposing of the Disposable will have no effect on the Signal
 	/// itself.
 	public func observeCompleted(completed: () -> ()) -> Disposable? {
-		return observe(Observer(completed: completed))
+		return observe(ReactiveObserver(completed: completed))
 	}
 	
 	/// Observes the Signal by invoking the given callback when a `failed` event is
@@ -198,7 +198,7 @@ extension SignalType {
 	/// callback. Disposing of the Disposable will have no effect on the Signal
 	/// itself.
 	public func observeFailed(error: Error -> ()) -> Disposable? {
-		return observe(Observer(failed: error))
+		return observe(ReactiveObserver(failed: error))
 	}
 	
 	/// Observes the Signal by invoking the given callback when an `interrupted` event is
@@ -209,7 +209,7 @@ extension SignalType {
 	/// callback. Disposing of the Disposable will have no effect on the Signal
 	/// itself.
 	public func observeInterrupted(interrupted: () -> ()) -> Disposable? {
-		return observe(Observer(interrupted: interrupted))
+		return observe(ReactiveObserver(interrupted: interrupted))
 	}
 
 	/// Maps each value in the signal to a new value.
